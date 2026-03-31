@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary"
+    tools:context=".MainActivity">
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:id="@+id/scroll_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/spacing_lg"
+            android:paddingTop="@dimen/spacing_xxl"
+            android:paddingBottom="@dimen/spacing_lg">
+
+            <!-- App Header -->
+            <TextView
+                android:id="@+id/tv_app_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SafeGuard"
+                android:textSize="28sp"
+                android:textColor="@color/text_primary"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.05"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/tv_app_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your safety, our priority"
+                android:textSize="@dimen/text_caption"
+                android:textColor="@color/text_hint"
+                android:layout_marginTop="@dimen/spacing_xs"
+                app:layout_constraintTop_toBottomOf="@id/tv_app_title"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <!-- Status Badge -->
+            <TextView
+                android:id="@+id/tv_status_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/status_safe"
+                android:textSize="@dimen/text_caption"
+                android:textColor="@color/safe_green"
+                android:fontFamily="sans-serif-medium"
+                android:background="@drawable/bg_status_safe"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:paddingVertical="@dimen/spacing_sm"
+                android:drawablePadding="@dimen/spacing_sm"
+                app:layout_constraintTop_toTopOf="@id/tv_app_title"
+                app:layout_constraintBottom_toBottomOf="@id/tv_app_subtitle"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- SOS Button Section -->
+            <FrameLayout
+                android:id="@+id/frame_sos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_xl"
+                app:layout_constraintTop_toBottomOf="@id/tv_app_subtitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <!-- Outer Pulsing Ring -->
+                <View
+                    android:id="@+id/view_sos_outer_ring"
+                    android:layout_width="@dimen/sos_outer_ring_size"
+                    android:layout_height="@dimen/sos_outer_ring_size"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sos_outer_ring" />
+
+                <!-- Main SOS Button -->
+                <Button
+                    android:id="@+id/btn_sos"
+                    android:layout_width="@dimen/sos_button_size"
+                    android:layout_height="@dimen/sos_button_size"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sos_button"
+                    android:text="@string/sos_label"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/sos_text_size"
+                    android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.15"
+                    android:stateListAnimator="@null"
+                    android:elevation="8dp" />
+
+            </FrameLayout>
+
+            <!-- SOS Instruction -->
+            <TextView
+                android:id="@+id/tv_sos_instruction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sos_instruction"
+                android:textSize="@dimen/sos_instruction_size"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:fontFamily="sans-serif"
+                app:layout_constraintTop_toBottomOf="@id/frame_sos"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Countdown Overlay (Initially GONE) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_countdown"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="@dimen/radius_lg"
+                app:cardElevation="4dp"
+                android:layout_marginTop="@dimen/spacing_md"
+                app:layout_constraintTop_toBottomOf="@id/tv_sos_instruction"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:visibility="visible">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/spacing_lg">
+
+                    <TextView
+                        android:id="@+id/tv_countdown_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/countdown_title"
+                        android:textSize="@dimen/text_subtitle"
+                        android:textColor="@color/danger_red"
+                        android:fontFamily="sans-serif-medium"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tv_countdown_number"
+                        android:layout_width="@dimen/countdown_size"
+                        android:layout_height="@dimen/countdown_size"
+                        android:gravity="center"
+                        android:text="5"
+                        android:textSize="@dimen/countdown_text_size"
+                        android:textColor="@color/countdown_text"
+                        android:fontFamily="sans-serif-black"
+                        android:background="@drawable/bg_status_danger"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        app:layout_constraintTop_toBottomOf="@id/tv_countdown_title"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        tools:text="5" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_cancel_countdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/countdown_cancel"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        style="@style/Widget.SafeGuard.Button.Outlined"
+                        app:layout_constraintTop_toBottomOf="@id/tv_countdown_number"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Status Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="@dimen/radius_md"
+                app:cardElevation="0dp"
+                android:layout_marginTop="@dimen/spacing_xl"
+                app:layout_constraintTop_toBottomOf="@id/card_countdown"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <TextView
+                        android:id="@+id/tv_status_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_current_status"
+                        style="@style/TextAppearance.SafeGuard.SectionHeader" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="@dimen/spacing_sm">
+
+                        <View
+                            android:id="@+id/view_status_dot"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:background="@drawable/bg_dot_active" />
+
+                        <TextView
+                            android:id="@+id/tv_status_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/status_safe"
+                            android:textSize="@dimen/text_title"
+                            android:textColor="@color/safe_green"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginStart="@dimen/spacing_sm" />
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginVertical="@dimen/spacing_md" />
+
+                    <!-- Last Known Location -->
+                    <TextView
+                        android:id="@+id/tv_location_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_last_location"
+                        style="@style/TextAppearance.SafeGuard.SectionHeader" />
+
+                    <TextView
+                        android:id="@+id/tv_last_location"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/placeholder_location"
+                        android:textSize="@dimen/text_body"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="@dimen/spacing_xs" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Background Monitoring Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_monitoring"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="@dimen/radius_md"
+                app:cardElevation="0dp"
+                android:layout_marginTop="@dimen/spacing_md"
+                app:layout_constraintTop_toBottomOf="@id/card_status"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_monitoring_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_background_monitoring"
+                            android:textSize="@dimen/text_subtitle"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:id="@+id/tv_monitoring_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/monitoring_disabled"
+                            android:textSize="@dimen/text_caption"
+                            android:textColor="@color/text_hint"
+                            android:layout_marginTop="2dp" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_monitoring"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/bottom_nav_height"
+        android:background="@color/nav_background"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/nav_icon_inactive"
+        app:itemTextColor="@color/nav_icon_inactive"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

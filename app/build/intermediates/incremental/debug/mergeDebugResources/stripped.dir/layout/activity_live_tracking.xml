@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tracking_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary"
+    tools:context=".LiveTrackingActivity">
+
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar_tracking"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primary_dark"
+        app:title="@string/tracking_title"
+        app:titleTextColor="@color/text_primary"
+        app:navigationIcon="@android:drawable/ic_menu_revert"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Sharing Status Indicator -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_sharing_status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/spacing_md"
+        android:layout_marginTop="@dimen/spacing_md"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/radius_md"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_tracking"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="@dimen/spacing_md">
+
+            <View
+                android:id="@+id/view_sharing_dot"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/bg_dot_inactive" />
+
+            <TextView
+                android:id="@+id/tv_sharing_status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/not_sharing"
+                android:textSize="@dimen/text_subtitle"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="@dimen/spacing_sm" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Location Details Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_location_details"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/spacing_md"
+        android:layout_marginTop="@dimen/spacing_md"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/radius_md"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/card_sharing_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_md">
+
+            <!-- Latitude Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_md">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_latitude"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/text_hint"
+                    android:fontFamily="sans-serif-medium"
+                    android:textAllCaps="true" />
+
+                <TextView
+                    android:id="@+id/tv_latitude"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/placeholder_coord"
+                    android:textSize="@dimen/text_title"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider" />
+
+            <!-- Longitude Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:layout_marginBottom="@dimen/spacing_md">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_longitude"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/text_hint"
+                    android:fontFamily="sans-serif-medium"
+                    android:textAllCaps="true" />
+
+                <TextView
+                    android:id="@+id/tv_longitude"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/placeholder_coord"
+                    android:textSize="@dimen/text_title"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider" />
+
+            <!-- Accuracy Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:layout_marginBottom="@dimen/spacing_md">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_accuracy"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/text_hint"
+                    android:fontFamily="sans-serif-medium"
+                    android:textAllCaps="true" />
+
+                <TextView
+                    android:id="@+id/tv_accuracy"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/placeholder_accuracy"
+                    android:textSize="@dimen/text_subtitle"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider" />
+
+            <!-- Last Updated Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/spacing_md">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_updated"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/text_hint"
+                    android:fontFamily="sans-serif-medium"
+                    android:textAllCaps="true" />
+
+                <TextView
+                    android:id="@+id/tv_last_updated"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/placeholder_time"
+                    android:textSize="@dimen/text_subtitle"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Start/Stop Sharing Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_toggle_sharing"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:text="@string/btn_start_sharing"
+        android:textSize="@dimen/text_subtitle"
+        style="@style/Widget.SafeGuard.Button"
+        android:layout_marginHorizontal="@dimen/spacing_md"
+        android:layout_marginBottom="@dimen/spacing_lg"
+        app:backgroundTint="@color/accent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Primary Brand Colors -->
+    <color name="primary">#1A1A2E</color>
+    <color name="primary_dark">#0F0F1A</color>
+    <color name="primary_variant">#16213E</color>
+
+    <!-- Accent Colors -->
+    <color name="accent">#E94560</color>
+    <color name="accent_dark">#C73550</color>
+
+    <!-- Status Colors -->
+    <color name="sos_red">#E53935</color>
+    <color name="sos_red_dark">#B71C1C</color>
+    <color name="sos_red_ripple">#80E53935</color>
+    <color name="safe_green">#00C853</color>
+    <color name="safe_green_bg">#1A00C853</color>
+    <color name="monitoring_amber">#FFB300</color>
+    <color name="monitoring_amber_bg">#1AFFB300</color>
+    <color name="danger_red">#FF1744</color>
+    <color name="danger_red_bg">#1AFF1744</color>
+
+    <!-- Surface Colors -->
+    <color name="surface_dark">#1E1E2E</color>
+    <color name="surface_card">#252540</color>
+    <color name="surface_card_elevated">#2A2A4A</color>
+    <color name="surface_input">#1A1A30</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#EAEAEA</color>
+    <color name="text_secondary">#9E9EB8</color>
+    <color name="text_hint">#6E6E8A</color>
+    <color name="text_on_accent">#FFFFFF</color>
+
+    <!-- Divider -->
+    <color name="divider">#2E2E4A</color>
+
+    <!-- Countdown -->
+    <color name="countdown_bg">#CC000000</color>
+    <color name="countdown_circle">#E53935</color>
+    <color name="countdown_text">#FFFFFF</color>
+
+    <!-- Navigation -->
+    <color name="nav_background">#12121F</color>
+    <color name="nav_icon_active">#E94560</color>
+    <color name="nav_icon_inactive">#6E6E8A</color>
+
+    <!-- Standard Android attrs -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+</resources>

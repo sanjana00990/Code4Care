@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <stroke
+        android:width="3dp"
+        android:color="@color/sos_red"
+        android:dashWidth="6dp"
+        android:dashGap="4dp" />
+    <size
+        android:width="@dimen/sos_outer_ring_size"
+        android:height="@dimen/sos_outer_ring_size" />
+</shape>
