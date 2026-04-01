@@ -31,6 +31,9 @@ class MainActivity : AppCompatActivity() {
     private var isCountdownActive = false
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+    /** Handles idle-location detection and automatic SMS alerting. */
+    private lateinit var idleLocationMonitor: IdleLocationMonitor
+
     // Status enum
     enum class SafetyStatus { SAFE, MONITORING, HIGH_RISK }
     private var currentStatus = SafetyStatus.SAFE
@@ -40,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        idleLocationMonitor = IdleLocationMonitor(this)
 
 
         setupSosButton()
@@ -48,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         startSosPulseAnimation()
         updateStatusUI(SafetyStatus.SAFE)
     }
-
+    
     // ────────────────────────────────────────────
     // SOS Button
     // ────────────────────────────────────────────
@@ -193,13 +197,18 @@ class MainActivity : AppCompatActivity() {
     private fun sendSMS(message: String) {
         android.util.Log.d("SMS_DEBUG","sendSMS called")
 
-        val phoneNumber = "+919767490868" // CHANGE THIS
+        val contacts = ContactManager.getContacts(this)
+        if (contacts.isEmpty()) {
+            Toast.makeText(this, "No emergency contacts configured!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         try {
             val smsManager = SmsManager.getDefault()
-            smsManager.sendTextMessage(phoneNumber, null, message, null, null)
-
-            Toast.makeText(this, "SOS Sent!", Toast.LENGTH_SHORT).show()
+            for (contact in contacts) {
+                smsManager.sendTextMessage(contact.phone, null, message, null, null)
+            }
+            Toast.makeText(this, "SOS Sent to ${contacts.size} contacts!", Toast.LENGTH_SHORT).show()
 
         } catch (e: Exception) {
             Toast.makeText(this, "SMS failed", Toast.LENGTH_SHORT).show()
@@ -212,12 +221,26 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == 1 && grantResults.isNotEmpty() &&
-            grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-
-            sendSOS()
-        } else {
-            Toast.makeText(this, "Permissions required!", Toast.LENGTH_SHORT).show()
+        when (requestCode) {
+            // SOS emergency grant
+            1 -> {
+                if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                    sendSOS()
+                } else {
+                    Toast.makeText(this, "Permissions required!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            // Location permission grant for idle monitoring
+            IdleLocationMonitor.LOCATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted – retry starting the monitor
+                    idleLocationMonitor.startLocationMonitoring()
+                    Toast.makeText(this, "Location granted – idle monitoring started", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Location permission denied – idle monitoring disabled", Toast.LENGTH_SHORT).show()
+                    binding.switchMonitoring.isChecked = false
+                }
+            }
         }
     }
 
@@ -226,6 +249,23 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.bottomNavigation.selectedItemId = R.id.nav_home
+        updateLastLocationUI()
+    }
+    
+    private fun updateLastLocationUI() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    binding.tvLastLocation.text = "Lat: ${"%.4f".format(location.latitude)}, Lon: ${"%.4f".format(location.longitude)}"
+                } else {
+                    binding.tvLastLocation.text = "Location unavailable"
+                }
+            }.addOnFailureListener {
+                binding.tvLastLocation.text = "Failed to get location"
+            }
+        } else {
+            binding.tvLastLocation.text = "Location permission required"
+        }
     }
 
     // ────────────────────────────────────────────
@@ -252,7 +292,6 @@ class MainActivity : AppCompatActivity() {
         android.util.Log.d("SMS_DEBUG","sendSOS called")
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.SEND_SMS),
@@ -261,48 +300,62 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Send SMS EVEN IF location is null
-        val message = "I am in danger! Please help!"
-
-        sendSMS(message)
+        val baseMessage = "I am in danger! Please help!"
 
         // Try getting location separately
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-
                 if (location != null) {
                     val lat = location.latitude
                     val lon = location.longitude
-
-                    val locationMsg = "My location: https://maps.google.com/?q=$lat,$lon"
+                    val locationMsg = "$baseMessage My location: https://maps.google.com/?q=$lat,$lon"
                     sendSMS(locationMsg)
+                } else {
+                    sendSMS(baseMessage)
                 }
+            }.addOnFailureListener {
+                sendSMS(baseMessage)
             }
+        } else {
+            sendSMS(baseMessage)
         }
     }
 
 
 
     /**
-     * Placeholder: Starts background monitoring service.
-     * In a real app, this would start sensor listeners, location tracking, etc.
+     * Starts idle-location monitoring.
+     * If ACCESS_FINE_LOCATION has not been granted yet, the system permission
+     * dialog is shown first. Once the user grants it, [onRequestPermissionsResult]
+     * automatically retries [IdleLocationMonitor.startLocationMonitoring].
      */
     private fun startMonitoring() {
-        Toast.makeText(this, "Background monitoring started", Toast.LENGTH_SHORT).show()
-        // TODO: Start foreground service for monitoring
+        if (idleLocationMonitor.needsLocationPermission()) {
+            // Ask the user for the permission now
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                IdleLocationMonitor.LOCATION_PERMISSION_REQUEST_CODE
+            )
+            // onRequestPermissionsResult will call startLocationMonitoring() after grant
+            return
+        }
+        idleLocationMonitor.startLocationMonitoring()
+        Toast.makeText(this, "Idle monitoring started", Toast.LENGTH_SHORT).show()
     }
 
     /**
-     * Placeholder: Stops background monitoring service.
+     * Stops idle-location monitoring and cancels any pending idle alert.
      */
     private fun stopMonitoring() {
-        Toast.makeText(this, "Background monitoring stopped", Toast.LENGTH_SHORT).show()
-        // TODO: Stop foreground service
+        idleLocationMonitor.stopLocationMonitoring()
+        Toast.makeText(this, "Idle monitoring stopped", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         countDownTimer?.cancel()
+        // Stop location updates and cancel idle timer when the activity is destroyed
+        idleLocationMonitor.stopLocationMonitoring()
     }
 }

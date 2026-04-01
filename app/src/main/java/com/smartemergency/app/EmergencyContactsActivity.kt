@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.smartemergency.app.ContactManager.Contact
 import com.smartemergency.app.adapter.ContactsAdapter
 import com.smartemergency.app.databinding.ActivityEmergencyContactsBinding
 
@@ -16,10 +17,8 @@ class EmergencyContactsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEmergencyContactsBinding
     private lateinit var adapter: ContactsAdapter
 
-    // In-memory contact list (placeholder, no persistence)
-    data class Contact(var name: String, var phone: String)
-
-    private val contactsList = mutableListOf<Contact>()
+    // Managed via ContactManager
+    private var contactsList = mutableListOf<Contact>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,8 +29,11 @@ class EmergencyContactsActivity : AppCompatActivity() {
         setupRecyclerView()
         setupAddButton()
 
-        // Add sample contacts for demonstration
-        addSampleContacts()
+        // Load saved contacts
+        contactsList.addAll(ContactManager.getContacts(this))
+        if (contactsList.isEmpty()) {
+            addSampleContacts()
+        }
     }
 
     private fun setupToolbar() {
@@ -60,6 +62,9 @@ class EmergencyContactsActivity : AppCompatActivity() {
         contactsList.add(Contact("Mom", "+91 98765 43210"))
         contactsList.add(Contact("Dad", "+91 98765 43211"))
         contactsList.add(Contact("Best Friend", "+91 87654 32109"))
+        contactsList.add(Contact("Shruti", "+91 75583 41221"))
+
+        ContactManager.saveContacts(this, contactsList)
         adapter.notifyDataSetChanged()
         updateEmptyState()
     }
@@ -89,6 +94,7 @@ class EmergencyContactsActivity : AppCompatActivity() {
             }
 
             contactsList.add(Contact(name, phone))
+            ContactManager.saveContacts(this, contactsList)
             adapter.notifyItemInserted(contactsList.size - 1)
             updateEmptyState()
             dialog.dismiss()
@@ -129,6 +135,7 @@ class EmergencyContactsActivity : AppCompatActivity() {
             }
 
             contactsList[position] = Contact(name, phone)
+            ContactManager.saveContacts(this, contactsList)
             adapter.notifyItemChanged(position)
             dialog.dismiss()
             Toast.makeText(this, "$name updated", Toast.LENGTH_SHORT).show()
@@ -144,6 +151,7 @@ class EmergencyContactsActivity : AppCompatActivity() {
             .setMessage("Remove $name from emergency contacts?")
             .setPositiveButton("Delete") { _, _ ->
                 contactsList.removeAt(position)
+                ContactManager.saveContacts(this, contactsList)
                 adapter.notifyItemRemoved(position)
                 updateEmptyState()
                 Toast.makeText(this, "$name removed", Toast.LENGTH_SHORT).show()

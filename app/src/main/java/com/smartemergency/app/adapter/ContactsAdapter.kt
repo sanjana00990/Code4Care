@@ -3,7 +3,7 @@ package com.smartemergency.app.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.smartemergency.app.EmergencyContactsActivity.Contact
+import com.smartemergency.app.ContactManager.Contact
 import com.smartemergency.app.databinding.ItemContactBinding
 
 class ContactsAdapter(
