@@ -16,6 +16,18 @@ class SettingsActivity : AppCompatActivity() {
 
         setupToolbar()
         setupSwitches()
+        setupProfile()
+    }
+
+    private fun setupProfile() {
+        val prefs = getSharedPreferences("smart_emergency_prefs", MODE_PRIVATE)
+        binding.etMyPhoneNumber.setText(prefs.getString("my_phone_number", ""))
+    }
+
+    override fun onPause() {
+        super.onPause()
+        val prefs = getSharedPreferences("smart_emergency_prefs", MODE_PRIVATE)
+        prefs.edit().putString("my_phone_number", binding.etMyPhoneNumber.text.toString().trim()).apply()
     }
 
     private fun setupToolbar() {

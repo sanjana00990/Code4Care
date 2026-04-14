@@ -60,6 +60,12 @@
     <string name="section_message">Emergency Message</string>
     <string name="section_battery">Battery &amp; Performance</string>
 
+    <!-- My Profile -->
+    <string name="section_profile">My Profile</string>
+    <string name="label_my_phone_number">My Phone Number</string>
+    <string name="hint_my_phone_number">+1 234 567 8900</string>
+    <string name="desc_my_phone_number">The number your Guardian will call</string>
+
     <!-- Live Tracking -->
     <string name="tracking_title">Live Tracking</string>
     <string name="label_latitude">Latitude</string>
@@ -89,4 +95,15 @@
     <string name="btn_im_safe">I\'m Safe</string>
     <string name="no_active_alert">No Active Alert</string>
     <string name="no_alert_description">All systems are normal. Emergency alerts will appear here when triggered.</string>
+
+    <!-- Guardian Dashboard -->
+    <string name="title_guardian_dashboard">Guardian Dashboard</string>
+    <string name="title_role_selection">Select Role</string>
+    <string name="role_parent">Parent / Guardian</string>
+    <string name="role_child">Child / User</string>
+    <string name="guardian_connecting">Connecting…</string>
+    <string name="guardian_call_user">📞  Call User</string>
+    <string name="guardian_open_maps">📍  Open Maps</string>
+    <string name="guardian_call_police">🚔  Call Police</string>
 </resources>
+

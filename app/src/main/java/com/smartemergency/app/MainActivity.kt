@@ -4,22 +4,20 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.View
-import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.view.animation.ScaleAnimation
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.materialswitch.MaterialSwitch
 import com.smartemergency.app.databinding.ActivityMainBinding
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.telephony.SmsManager
-
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 
 class MainActivity : AppCompatActivity() {
@@ -33,6 +31,11 @@ class MainActivity : AppCompatActivity() {
 
     /** Handles idle-location detection and automatic SMS alerting. */
     private lateinit var idleLocationMonitor: IdleLocationMonitor
+
+    // ── Firebase ────────────────────────────────────────────────────
+    private val firestore = FirebaseFirestore.getInstance()
+    private var locationCallback: LocationCallback? = null
+    private var locationRequest: LocationRequest? = null
 
     // Status enum
     enum class SafetyStatus { SAFE, MONITORING, HIGH_RISK }
@@ -52,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         startSosPulseAnimation()
         updateStatusUI(SafetyStatus.SAFE)
     }
-    
+
     // ────────────────────────────────────────────
     // SOS Button
     // ────────────────────────────────────────────
@@ -251,7 +254,7 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.selectedItemId = R.id.nav_home
         updateLastLocationUI()
     }
-    
+
     private fun updateLastLocationUI() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
@@ -279,7 +282,10 @@ class MainActivity : AppCompatActivity() {
     private fun triggerEmergency() {
         updateStatusUI(SafetyStatus.HIGH_RISK)
 
-        sendSOS()  // ← ADD THIS
+        sendSOS()
+
+        // ── Write Emergency status to Firestore so Parent sees it ──
+        pushAlertToFirestore("Emergency", "SOS triggered by user!")
 
         Toast.makeText(this, "Emergency Triggered!", Toast.LENGTH_LONG).show()
 
@@ -302,12 +308,14 @@ class MainActivity : AppCompatActivity() {
 
         val baseMessage = "I am in danger! Please help!"
 
-        // Try getting location separately
+        // Try getting location, push to Firestore, and send SMS
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     val lat = location.latitude
                     val lon = location.longitude
+                    // Push location to Firestore for Guardian Dashboard
+                    pushLocationToFirestore(lat, lon)
                     val locationMsg = "$baseMessage My location: https://maps.google.com/?q=$lat,$lon"
                     sendSMS(locationMsg)
                 } else {
@@ -321,6 +329,48 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── Firestore Write Helpers ──────────────────────────────────────
+
+    /**
+     * Pushes a status + message to Firestore alerts/latest.
+     * The Guardian Dashboard reads this in real-time.
+     */
+    private fun pushAlertToFirestore(status: String, message: String = "") {
+        val prefs = getSharedPreferences("smart_emergency_prefs", MODE_PRIVATE)
+        val phoneNumber = prefs.getString("my_phone_number", "") ?: ""
+
+        val data = hashMapOf(
+            "status" to status,
+            "message" to message,
+            "timestamp" to System.currentTimeMillis(),
+            "phoneNumber" to phoneNumber
+        )
+        firestore.collection("alerts")
+            .document("latest")
+            .set(data, SetOptions.merge())
+            .addOnFailureListener { e ->
+                android.util.Log.e("Firestore", "Failed to push alert", e)
+            }
+    }
+
+    /**
+     * Pushes current GPS coordinates to Firestore trackingUpdates/latest.
+     * The Guardian Dashboard map updates from this.
+     */
+    private fun pushLocationToFirestore(lat: Double, lon: Double) {
+        val data = hashMapOf(
+            "latitude" to lat,
+            "longitude" to lon,
+            "timestamp" to System.currentTimeMillis()
+        )
+        firestore.collection("trackingUpdates")
+            .document("latest")
+            .set(data, SetOptions.merge())
+            .addOnFailureListener { e ->
+                android.util.Log.e("Firestore", "Failed to push location", e)
+            }
+    }
+
 
 
     /**
@@ -331,17 +381,55 @@ class MainActivity : AppCompatActivity() {
      */
     private fun startMonitoring() {
         if (idleLocationMonitor.needsLocationPermission()) {
-            // Ask the user for the permission now
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 IdleLocationMonitor.LOCATION_PERMISSION_REQUEST_CODE
             )
-            // onRequestPermissionsResult will call startLocationMonitoring() after grant
             return
         }
         idleLocationMonitor.startLocationMonitoring()
-        Toast.makeText(this, "Idle monitoring started", Toast.LENGTH_SHORT).show()
+
+        // Start Emergency Detection Service
+        val serviceIntent = Intent(this, EmergencyDetectionService::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+
+        // ── Start periodic location updates → push to Firestore ──
+        startLiveLocationUpdates()
+
+        // Mark status as Moving in Firestore
+        pushAlertToFirestore("Moving")
+
+        Toast.makeText(this, "Idle & Emergency monitoring started", Toast.LENGTH_SHORT).show()
+    }
+
+    @Suppress("MissingPermission")
+    private fun startLiveLocationUpdates() {
+        locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY, 15_000L // every 15 seconds
+        ).setMinUpdateIntervalMillis(10_000L).build()
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val loc = result.lastLocation ?: return
+                pushLocationToFirestore(loc.latitude, loc.longitude)
+                // Update status to Moving while location is changing
+                pushAlertToFirestore("Moving")
+            }
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest!!,
+                locationCallback!!,
+                mainLooper
+            )
+        }
     }
 
     /**
@@ -349,13 +437,25 @@ class MainActivity : AppCompatActivity() {
      */
     private fun stopMonitoring() {
         idleLocationMonitor.stopLocationMonitoring()
-        Toast.makeText(this, "Idle monitoring stopped", Toast.LENGTH_SHORT).show()
+
+        // Stop periodic location updates
+        locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
+        locationCallback = null
+
+        // Mark status as Idle in Firestore
+        pushAlertToFirestore("Idle")
+
+        // Stop Emergency Detection Service
+        val serviceIntent = Intent(this, EmergencyDetectionService::class.java)
+        stopService(serviceIntent)
+
+        Toast.makeText(this, "Monitoring stopped", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         countDownTimer?.cancel()
-        // Stop location updates and cancel idle timer when the activity is destroyed
+        locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
         idleLocationMonitor.stopLocationMonitoring()
     }
 }

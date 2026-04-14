@@ -37,6 +37,62 @@
             android:orientation="vertical"
             android:padding="@dimen/spacing_md">
 
+            <!-- ═══ MY PROFILE SECTION ═══ -->
+            <TextView
+                android:id="@+id/tv_section_profile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_profile"
+                style="@style/TextAppearance.SafeGuard.SectionHeader"
+                android:layout_marginBottom="@dimen/spacing_sm"
+                android:layout_marginTop="@dimen/spacing_sm" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_md"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="@dimen/radius_md"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_my_phone_number"
+                        android:textSize="@dimen/text_subtitle"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/desc_my_phone_number"
+                        android:textSize="@dimen/text_caption"
+                        android:textColor="@color/text_hint"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="@dimen/spacing_sm" />
+
+                    <EditText
+                        android:id="@+id/et_my_phone_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_my_phone_number"
+                        android:inputType="phone"
+                        android:textSize="@dimen/text_body"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:background="@drawable/bg_input_field"
+                        android:padding="@dimen/spacing_md"
+                        android:importantForAutofill="no" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- ═══ DETECTION SETTINGS SECTION ═══ -->
             <TextView
                 android:id="@+id/tv_section_detection"
