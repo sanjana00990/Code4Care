@@ -62,6 +62,9 @@
 
     <!-- My Profile -->
     <string name="section_profile">My Profile</string>
+    <string name="label_my_name">My Name</string>
+    <string name="hint_my_name">Jane Doe</string>
+    <string name="desc_my_name">Your name shown in emergency alerts</string>
     <string name="label_my_phone_number">My Phone Number</string>
     <string name="hint_my_phone_number">+1 234 567 8900</string>
     <string name="desc_my_phone_number">The number your Guardian will call</string>

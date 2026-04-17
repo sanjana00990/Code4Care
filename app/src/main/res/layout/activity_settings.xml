@@ -64,6 +64,36 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="@string/label_my_name"
+                        android:textSize="@dimen/text_subtitle"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/desc_my_name"
+                        android:textSize="@dimen/text_caption"
+                        android:textColor="@color/text_hint"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="@dimen/spacing_sm" />
+
+                    <EditText
+                        android:id="@+id/et_my_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_my_name"
+                        android:inputType="textPersonName"
+                        android:textSize="@dimen/text_body"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:background="@drawable/bg_input_field"
+                        android:padding="@dimen/spacing_md"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        android:importantForAutofill="no" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="@string/label_my_phone_number"
                         android:textSize="@dimen/text_subtitle"
                         android:textColor="@color/text_primary" />

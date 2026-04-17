@@ -50,10 +50,26 @@ class MainActivity : AppCompatActivity() {
 
 
         setupSosButton()
-        setupMonitoringToggle()
         setupBottomNavigation()
         startSosPulseAnimation()
-        updateStatusUI(SafetyStatus.SAFE)
+        
+        // Restore monitoring state
+        val prefs = getSharedPreferences("smart_emergency_prefs", MODE_PRIVATE)
+        val isMonitoringSaved = prefs.getBoolean("is_monitoring_enabled", false)
+        
+        // Remove listener temporarily to avoid duplicate calls during setup
+        binding.switchMonitoring.setOnCheckedChangeListener(null)
+        binding.switchMonitoring.isChecked = isMonitoringSaved
+        setupMonitoringToggle() // Reattach the listener
+        
+        if (isMonitoringSaved) {
+            updateStatusUI(SafetyStatus.MONITORING)
+            binding.tvMonitoringStatus.text = getString(R.string.monitoring_enabled)
+            binding.tvMonitoringStatus.setTextColor(ContextCompat.getColor(this, R.color.safe_green))
+            startMonitoring()
+        } else {
+            updateStatusUI(SafetyStatus.SAFE)
+        }
     }
 
     // ────────────────────────────────────────────
@@ -151,6 +167,11 @@ class MainActivity : AppCompatActivity() {
     private fun setupMonitoringToggle() {
         binding.switchMonitoring.setOnCheckedChangeListener { _, isChecked ->
             isMonitoring = isChecked
+            
+            // Save state to SharedPreferences
+            val prefs = getSharedPreferences("smart_emergency_prefs", MODE_PRIVATE)
+            prefs.edit().putBoolean("is_monitoring_enabled", isChecked).apply()
+            
             if (isChecked) {
                 binding.tvMonitoringStatus.text = getString(R.string.monitoring_enabled)
                 binding.tvMonitoringStatus.setTextColor(

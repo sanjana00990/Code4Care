@@ -36,17 +36,11 @@ class IdleLocationMonitor(private val context: Context) {
         /** Radius within which the user is considered "not moved" (metres). */
         private const val IDLE_DISTANCE_METERS = 20f
 
-        /** Duration of no movement before the alert fires (5 minutes in ms). */
-        private const val IDLE_TIMEOUT_MS = 30 * 1000L   // 30 s for testing; change to 5 * 60 * 1000L for production
-
         /** How often FusedLocationProvider delivers a new fix (ms). */
         private const val LOCATION_INTERVAL_MS = 30_000L      // every 30 s
 
         /** Fastest rate at which location updates will arrive (ms). */
         private const val LOCATION_FASTEST_INTERVAL_MS = 15_000L
-
-        // ── Hardcoded emergency contact ──────────────────────────────────
-        private const val ALERT_USER_NAME  = "Shruti"         // ← name in the message
 
         /** Request code used when MainActivity asks for location permission on our behalf. */
         const val LOCATION_PERMISSION_REQUEST_CODE = 1001
@@ -201,14 +195,22 @@ class IdleLocationMonitor(private val context: Context) {
         // else: user is still near the reference; let the timer run
     }
 
+    private fun getIdleTimeoutMs(): Long {
+        val prefs = context.getSharedPreferences("smart_emergency_prefs", Context.MODE_PRIVATE)
+        val minutesStr = prefs.getString("idle_threshold", "15") ?: "15"
+        val minutes = minutesStr.toLongOrNull() ?: 15L
+        return minutes * 60 * 1000L
+    }
+
     /**
      * Cancels any pending idle runnable and schedules a fresh one
-     * [IDLE_TIMEOUT_MS] milliseconds from now.
+     * based on the user's saved threshold.
      */
     private fun resetIdleTimer() {
         handler.removeCallbacks(idleTimeoutRunnable)
-        handler.postDelayed(idleTimeoutRunnable, IDLE_TIMEOUT_MS)
-        Log.d(TAG, "Idle timer reset – alert in ${IDLE_TIMEOUT_MS / 60_000} min")
+        val timeoutMs = getIdleTimeoutMs()
+        handler.postDelayed(idleTimeoutRunnable, timeoutMs)
+        Log.d(TAG, "Idle timer reset – alert in ${timeoutMs / 60_000} min")
     }
 
     /**
@@ -232,14 +234,18 @@ class IdleLocationMonitor(private val context: Context) {
             return
         }
 
+        val prefs = context.getSharedPreferences("smart_emergency_prefs", Context.MODE_PRIVATE)
+        val savedName = prefs.getString("my_name", "")?.trim() ?: ""
+        val alertUserName = if (savedName.isNotEmpty()) savedName else "The user"
+
         val location = lastKnownLocation
         val message = if (location != null) {
             val lat = location.latitude
             val lon = location.longitude
-            "$ALERT_USER_NAME is idle at this location: https://maps.google.com/?q=$lat,$lon"
+            "$alertUserName is idle at this location: https://maps.google.com/?q=$lat,$lon"
         } else {
             // Rare edge-case: timer fired before any fix arrived
-            "$ALERT_USER_NAME appears idle but location is unavailable."
+            "$alertUserName appears idle but location is unavailable."
         }
 
         val contacts = ContactManager.getContacts(context)

@@ -167,6 +167,7 @@ class AlertStatusActivity : AppCompatActivity() {
         progressTimer?.cancel()
         isAlertActive = false
         showNoAlert()
+        stopEmergencyServiceSOS()
         Toast.makeText(this, "Alert cancelled", Toast.LENGTH_SHORT).show()
     }
 
@@ -174,7 +175,19 @@ class AlertStatusActivity : AppCompatActivity() {
         progressTimer?.cancel()
         isAlertActive = false
         showNoAlert()
+        stopEmergencyServiceSOS()
         Toast.makeText(this, "Marked as safe. Stay safe! 💚", Toast.LENGTH_LONG).show()
+    }
+
+    private fun stopEmergencyServiceSOS() {
+        val serviceIntent = android.content.Intent(this, EmergencyDetectionService::class.java).apply {
+            action = "ACTION_CANCEL_SOS"
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
     }
 
     override fun onDestroy() {

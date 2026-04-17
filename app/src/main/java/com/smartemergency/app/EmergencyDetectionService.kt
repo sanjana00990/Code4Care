@@ -9,6 +9,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.LocationServices
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -94,7 +98,15 @@ class EmergencyDetectionService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "Service started")
+        if (intent?.action == "ACTION_CANCEL_SOS") {
+            Log.d(TAG, "Cancel SOS action received. Stopping SOS burst.")
+            sosHandler.removeCallbacksAndMessages(null)
+            isSosBurstActive = false
+            sosBurstMessagesSent = 0
+            pushAlertToFirestore("Safe", "User manually cancelled the SOS alert.")
+        } else {
+            Log.d(TAG, "Service started")
+        }
         // START_STICKY – system restarts the service if killed
         return START_STICKY
     }
@@ -287,21 +299,40 @@ class EmergencyDetectionService : Service(), SensorEventListener {
             return
         }
 
-        val message = "[SOS $messageNumber/$SOS_MESSAGE_COUNT] EMERGENCY! I need help! " +
-                "This alert was triggered automatically on my phone. " +
-                "Please call me or contact the authorities immediately."
+        val baseMessage = "[SOS $messageNumber/$SOS_MESSAGE_COUNT] EMERGENCY! I need help! " +
+                "This alert was triggered automatically on my phone."
 
-        try {
-            @Suppress("DEPRECATION")
-            val smsManager: SmsManager = SmsManager.getDefault()
-            val parts = smsManager.divideMessage(message)
+        val sendSmsTask = { message: String ->
+            try {
+                @Suppress("DEPRECATION")
+                val smsManager: SmsManager = SmsManager.getDefault()
+                val parts = smsManager.divideMessage(message)
 
-            for (contact in contacts) {
-                smsManager.sendMultipartTextMessage(contact.phone, null, parts, null, null)
-                Log.d(TAG, "SOS SMS $messageNumber sent to ${contact.name} (${contact.phone})")
+                for (contact in contacts) {
+                    smsManager.sendMultipartTextMessage(contact.phone, null, parts, null, null)
+                    Log.d(TAG, "SOS SMS $messageNumber sent to ${contact.name} (${contact.phone})")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send SOS SMS $messageNumber", e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to send SOS SMS $messageNumber", e)
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    val lat = location.latitude
+                    val lon = location.longitude
+                    val locationMsg = "$baseMessage My location: https://maps.google.com/?q=$lat,$lon"
+                    sendSmsTask(locationMsg)
+                } else {
+                    sendSmsTask("$baseMessage Please call me or contact the authorities immediately.")
+                }
+            }.addOnFailureListener {
+                sendSmsTask("$baseMessage Please call me or contact the authorities immediately.")
+            }
+        } else {
+            sendSmsTask("$baseMessage Please call me or contact the authorities immediately.")
         }
     }
 
